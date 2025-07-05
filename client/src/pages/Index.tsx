@@ -208,7 +208,7 @@ const Index = () => {
                   <Button 
                     variant="ghost" 
                     className="w-full text-primary hover:text-primary hover:bg-primary/10"
-                    onClick={() => navigate("/search", { state: { from: route.from, to: route.to } })}
+                    onClick={() => window.location.href = `/search?from=${route.from}&to=${route.to}`}
                   >
                     Book Now
                   </Button>

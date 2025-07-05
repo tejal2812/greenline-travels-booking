@@ -1,9 +1,38 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertRouteSchema, insertBusOperatorSchema, insertBusSchema, insertBookingSchema } from "@shared/schema";
+import { seedDatabase } from "./seedData";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Development seed route
+  app.post('/api/seed', async (req, res) => {
+    try {
+      await seedDatabase();
+      res.json({ message: "Database seeded successfully" });
+    } catch (error) {
+      console.error("Seed error:", error);
+      res.status(500).json({ message: "Failed to seed database" });
+    }
+  });
+
   // Routes API
   app.get("/api/routes", async (req, res) => {
     try {
@@ -226,6 +255,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // WebSocket server for real-time seat updates
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws: WebSocket) => {
+    console.log('Client connected to WebSocket');
+    
+    ws.on('message', async (message: string) => {
+      try {
+        const data = JSON.parse(message);
+        
+        switch (data.type) {
+          case 'seat_lock':
+            // Lock seat for 10 minutes during booking process
+            await storage.updateSeatStatus(data.seatId, 'locked');
+            broadcast({
+              type: 'seat_locked',
+              seatId: data.seatId,
+              busId: data.busId
+            });
+            break;
+            
+          case 'seat_unlock':
+            await storage.updateSeatStatus(data.seatId, 'available');
+            broadcast({
+              type: 'seat_unlocked', 
+              seatId: data.seatId,
+              busId: data.busId
+            });
+            break;
+            
+          case 'join_bus':
+            // Join room for specific bus updates
+            ws.busId = data.busId;
+            break;
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('Client disconnected from WebSocket');
+    });
+  });
+  
+  function broadcast(message: any) {
+    wss.clients.forEach((client: any) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(message));
+      }
+    });
+  }
 
   return httpServer;
 }
