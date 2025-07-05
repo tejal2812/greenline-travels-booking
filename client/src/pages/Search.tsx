@@ -11,7 +11,7 @@ import { format } from "date-fns";
 import { CalendarIcon, Clock, MapPin, Star, ArrowRight, Bus as BusIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { mockBuses, cities, type Bus } from "@/lib/mockData";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 
 const Search = () => {
   const [from, setFrom] = useState("");

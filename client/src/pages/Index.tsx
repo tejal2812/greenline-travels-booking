@@ -9,18 +9,19 @@ import { format } from "date-fns";
 import { CalendarIcon, ArrowRight, Star, MapPin, Clock, Shield, Users, Wifi, Headphones } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { cities, mockRoutes } from "@/lib/mockData";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "wouter";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Index = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [date, setDate] = useState<Date>();
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   const handleSearch = () => {
     if (from && to && date) {
-      navigate("/search", { state: { from, to, date } });
+      const searchParams = new URLSearchParams({ from, to, date: format(date, "yyyy-MM-dd") });
+      setLocation(`/search?${searchParams.toString()}`);
     }
   };
 
