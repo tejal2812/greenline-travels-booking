@@ -16,12 +16,18 @@ const Booking = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   
-  // For now, we'll get this data from localStorage or URL params
-  // In a full implementation, this would come from a state management solution
-  const bus = null;
-  const selectedSeats: string[] = [];
-  const totalAmount = 0;
-  const journeyDate = "";
+  // Mock data - replace with actual data fetching
+  const bus = {
+    id: "mock-bus-1",
+    operator: "RedBus Express",
+    busType: "AC Sleeper",
+    from: "Delhi",
+    to: "Jaipur", 
+    departureTime: "22:00"
+  };
+  const selectedSeats: string[] = ["1A", "1B"];
+  const totalAmount = 800;
+  const journeyDate = "2025-01-10";
   
   const [passengerInfo, setPassengerInfo] = useState({
     name: "",

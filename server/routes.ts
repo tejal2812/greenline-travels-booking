@@ -288,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
           case 'join_bus':
             // Join room for specific bus updates
-            ws.busId = data.busId;
+            (ws as any).busId = data.busId;
             break;
         }
       } catch (error) {

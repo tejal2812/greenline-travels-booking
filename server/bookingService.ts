@@ -95,7 +95,7 @@ export class BookingService {
       }
 
       // Check cancellation policy (24 hours before journey)
-      const journeyDate = new Date(booking.journeyDate);
+      const journeyDate = new Date(booking.travelDate);
       const now = new Date();
       const hoursUntilJourney = (journeyDate.getTime() - now.getTime()) / (1000 * 60 * 60);
 
@@ -109,13 +109,14 @@ export class BookingService {
       // Update booking status
       await storage.updateBooking(bookingId, { 
         status: 'cancelled',
-        refundAmount: refundAmount.toString(),
+        cancellationReason: 'User requested cancellation',
+        cancelledAt: new Date()
       });
 
       // Release seats
       await Promise.all(
-        booking.seatNumbers.map((seatNum: string) =>
-          storage.updateSeatStatus(`${booking.busId}-seat-${seatNum}`, 'available')
+        booking.seatIds.map((seatId: string) =>
+          storage.updateSeatStatus(seatId, 'available')
         )
       );
 
@@ -217,7 +218,7 @@ export class BookingService {
 
       const bookings = await storage.getBookings();
       const tomorrowBookings = bookings.filter(booking => {
-        const journeyDate = new Date(booking.journeyDate);
+        const journeyDate = new Date(booking.travelDate);
         return journeyDate.toDateString() === tomorrow.toDateString() &&
                booking.status === 'confirmed';
       });
