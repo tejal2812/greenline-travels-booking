@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertRouteSchema, insertBusOperatorSchema, insertBusSchema, insertBookingSchema } from "@shared/schema";
-import { seedDatabase } from "./seedData";
+import { storage } from "./storage.js";
+import { setupAuth, isAuthenticated } from "./replitAuth.js";
+import { insertRouteSchema, insertBusOperatorSchema, insertBusSchema, insertBookingSchema } from "../shared/schema.js";
+import { seedDatabase } from "./seedData.js";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
